@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 
-from db import execute_write, fetch_one, get_connection
+from db import execute_write, fetch_all, fetch_one, get_connection
 
 
 STAT_QUERIES = [
@@ -194,6 +194,52 @@ def cancel_group_order_transaction(group_order_id):
             connection.close()
 
 
+def query_group_order_details(filters):
+    where_clauses = []
+    params = []
+
+    group_order_id = parse_int(filters["group_order_id"])
+    if group_order_id is not None:
+        where_clauses.append("group_order_id = %s")
+        params.append(group_order_id)
+
+    student_name = filters["student_name"].strip()
+    if student_name:
+        where_clauses.append("student_name LIKE %s")
+        params.append(f"%{student_name}%")
+
+    group_status = filters["group_status"].strip()
+    if group_status:
+        if group_status not in {"OPEN", "FINISHED", "CANCELED"}:
+            raise ValueError("拼单状态不正确")
+        where_clauses.append("group_status = %s")
+        params.append(group_status)
+
+    sql = """
+        SELECT
+            group_order_id,
+            group_title,
+            group_status,
+            group_total_amount,
+            shop_name,
+            order_item_id,
+            student_no,
+            student_name,
+            drink_name,
+            drink_price,
+            quantity,
+            item_amount,
+            discount_amount,
+            pay_amount,
+            item_status
+        FROM v_group_order_detail
+    """
+    if where_clauses:
+        sql += " WHERE " + " AND ".join(where_clauses)
+    sql += " ORDER BY group_order_id, order_item_id"
+    return fetch_all(sql, tuple(params))
+
+
 def create_app():
     app = Flask(__name__)
 
@@ -361,6 +407,38 @@ def create_app():
             form_data=form_data,
             message=message,
             message_type=message_type,
+        )
+
+    @app.route("/group/query")
+    def query_group():
+        filters = {
+            "group_order_id": request.args.get("group_order_id", "").strip(),
+            "student_name": request.args.get("student_name", "").strip(),
+            "group_status": request.args.get("group_status", "").strip(),
+        }
+        rows = []
+        message = None
+        message_type = None
+
+        try:
+            rows = query_group_order_details(filters)
+            if not rows:
+                message = "没有查询到匹配的拼单详情"
+                message_type = "empty"
+        except ValueError as exc:
+            message = str(exc)
+            message_type = "error"
+        except Exception as exc:
+            message = f"查询失败：{exc}"
+            message_type = "error"
+
+        return render_template(
+            "query_group.html",
+            filters=filters,
+            message=message,
+            message_type=message_type,
+            rows=rows,
+            status_options=("OPEN", "FINISHED", "CANCELED"),
         )
 
     return app

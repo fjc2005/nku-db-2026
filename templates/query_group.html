@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}拼单详情查询{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">Group Detail</p>
+        <h1>拼单详情查询</h1>
+    </div>
+    <a class="back-link" href="{{ url_for('index') }}">返回首页</a>
+</section>
+
+<form class="form-panel" method="get">
+    <div class="form-grid form-grid--three">
+        <label class="field">
+            <span>拼单编号</span>
+            <input type="number" name="group_order_id" min="1" value="{{ filters.group_order_id }}">
+        </label>
+
+        <label class="field">
+            <span>学生姓名</span>
+            <input type="text" name="student_name" value="{{ filters.student_name }}">
+        </label>
+
+        <label class="field">
+            <span>拼单状态</span>
+            <select name="group_status">
+                <option value="">全部</option>
+                {% for status in status_options %}
+                <option value="{{ status }}" {% if filters.group_status == status %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+
+    <div class="button-row">
+        <button class="primary-button" type="submit">查询</button>
+    </div>
+</form>
+
+{% if message %}
+<div class="notice notice--{{ message_type }}" role="status">{{ message }}</div>
+{% endif %}
+
+<section class="table-panel">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>拼单编号</th>
+                    <th>拼单标题</th>
+                    <th>拼单状态</th>
+                    <th>店铺</th>
+                    <th>学生</th>
+                    <th>学号</th>
+                    <th>饮品</th>
+                    <th>单价</th>
+                    <th>数量</th>
+                    <th>原价</th>
+                    <th>优惠</th>
+                    <th>实付</th>
+                    <th>明细状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>{{ row.group_order_id }}</td>
+                    <td>{{ row.group_title }}</td>
+                    <td>{{ row.group_status }}</td>
+                    <td>{{ row.shop_name }}</td>
+                    <td>{{ row.student_name }}</td>
+                    <td>{{ row.student_no }}</td>
+                    <td>{{ row.drink_name }}</td>
+                    <td>{{ row.drink_price }}</td>
+                    <td>{{ row.quantity }}</td>
+                    <td>{{ row.item_amount }}</td>
+                    <td>{{ row.discount_amount }}</td>
+                    <td>{{ row.pay_amount }}</td>
+                    <td>{{ row.item_status }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="13">暂无数据</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
