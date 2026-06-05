@@ -15,21 +15,46 @@
 <div class="notice notice--{{ message_type }}" role="status">{{ message }}</div>
 {% endif %}
 
+{% if options_error %}
+<div class="notice notice--error" role="status">{{ options_error }}</div>
+{% endif %}
+
 <form class="form-panel" method="post">
     <div class="form-grid">
         <label class="field">
-            <span>拼单编号</span>
-            <input type="number" name="group_order_id" min="1" required value="{{ form_data.group_order_id }}">
+            <span>拼单</span>
+            <select name="group_order_id" required>
+                <option value="">请选择拼单</option>
+                {% for group_order in options.group_orders %}
+                <option value="{{ group_order.group_order_id }}" {% if form_data.group_order_id == group_order.group_order_id|string %}selected{% endif %}>
+                    #{{ group_order.group_order_id }} {{ group_order.title }} / {{ group_order.shop_name }} / {{ group_order.status }}
+                </option>
+                {% endfor %}
+            </select>
         </label>
 
         <label class="field">
-            <span>学生编号</span>
-            <input type="number" name="student_id" min="1" required value="{{ form_data.student_id }}">
+            <span>学生</span>
+            <select name="student_id" required>
+                <option value="">请选择学生</option>
+                {% for student in options.students %}
+                <option value="{{ student.student_id }}" {% if form_data.student_id == student.student_id|string %}selected{% endif %}>
+                    {{ student.name }} ({{ student.student_no }}) / {{ student.status }}
+                </option>
+                {% endfor %}
+            </select>
         </label>
 
         <label class="field">
-            <span>饮品编号</span>
-            <input type="number" name="drink_id" min="1" required value="{{ form_data.drink_id }}">
+            <span>饮品</span>
+            <select name="drink_id" required>
+                <option value="">请选择饮品</option>
+                {% for drink in options.drinks %}
+                <option value="{{ drink.drink_id }}" {% if form_data.drink_id == drink.drink_id|string %}selected{% endif %}>
+                    #{{ drink.drink_id }} {{ drink.drink_name }} / {{ drink.shop_name }} / {{ drink.price }} / 库存 {{ drink.stock }} / {{ drink.status }}
+                </option>
+                {% endfor %}
+            </select>
         </label>
 
         <label class="field">
@@ -38,8 +63,15 @@
         </label>
 
         <label class="field">
-            <span>优惠券编号</span>
-            <input type="number" name="coupon_id" min="1" value="{{ form_data.coupon_id }}">
+            <span>优惠券</span>
+            <select name="coupon_id">
+                <option value="" {% if not form_data.coupon_id %}selected{% endif %}>不使用优惠券</option>
+                {% for coupon in options.coupons %}
+                <option value="{{ coupon.coupon_id }}" {% if form_data.coupon_id == coupon.coupon_id|string %}selected{% endif %}>
+                    #{{ coupon.coupon_id }} {{ coupon.coupon_name }} / {{ coupon.amount }} / {{ coupon.student_name }} ({{ coupon.student_no }}) / {{ coupon.status }}
+                </option>
+                {% endfor %}
+            </select>
         </label>
     </div>
 

@@ -41,6 +41,67 @@ def fallback_stats():
     ]
 
 
+def empty_order_form_options():
+    return {
+        "students": [],
+        "group_orders": [],
+        "drinks": [],
+        "coupons": [],
+    }
+
+
+def load_order_form_options():
+    return {
+        "students": fetch_all(
+            """
+            SELECT student_id, student_no, name, status
+            FROM students
+            ORDER BY CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END, student_id
+            """
+        ),
+        "group_orders": fetch_all(
+            """
+            SELECT
+                go.group_order_id,
+                go.title,
+                go.status,
+                sh.shop_name
+            FROM group_orders go
+            JOIN shops sh ON go.shop_id = sh.shop_id
+            ORDER BY CASE WHEN go.status = 'OPEN' THEN 0 ELSE 1 END, go.group_order_id
+            """
+        ),
+        "drinks": fetch_all(
+            """
+            SELECT
+                d.drink_id,
+                d.drink_name,
+                d.price,
+                d.stock,
+                d.status,
+                sh.shop_name
+            FROM drinks d
+            JOIN shops sh ON d.shop_id = sh.shop_id
+            ORDER BY CASE WHEN d.status = 'ON_SALE' THEN 0 ELSE 1 END, d.drink_id
+            """
+        ),
+        "coupons": fetch_all(
+            """
+            SELECT
+                c.coupon_id,
+                c.coupon_name,
+                c.amount,
+                c.status,
+                s.student_no,
+                s.name AS student_name
+            FROM coupons c
+            JOIN students s ON c.student_id = s.student_id
+            ORDER BY CASE WHEN c.status = 'UNUSED' THEN 0 ELSE 1 END, c.coupon_id
+            """
+        ),
+    }
+
+
 def parse_int(value):
     value = value.strip()
     if not value:
@@ -403,6 +464,13 @@ def create_app():
         }
         message = None
         message_type = None
+        options = empty_order_form_options()
+        options_error = None
+
+        try:
+            options = load_order_form_options()
+        except Exception:
+            options_error = "下拉选项暂时不可用，请确认数据库连接和基础数据。"
 
         if request.method == "POST":
             form_data = {
@@ -449,6 +517,8 @@ def create_app():
             form_data=form_data,
             message=message,
             message_type=message_type,
+            options=options,
+            options_error=options_error,
         )
 
     @app.route("/group/finish", methods=["GET", "POST"])
