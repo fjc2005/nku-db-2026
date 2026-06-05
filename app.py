@@ -103,13 +103,49 @@ def load_order_form_options():
 
 
 def parse_int(value):
-    value = value.strip()
+    value = (value or "").strip()
     if not value:
         return None
     try:
         return int(value)
     except ValueError as exc:
         raise ValueError("请输入有效数字") from exc
+
+
+def parse_required_positive_int(value, field_label):
+    parsed_value = parse_int(value)
+    if parsed_value is None:
+        raise ValueError(f"{field_label}不能为空")
+    if parsed_value <= 0:
+        raise ValueError(f"{field_label}必须为正整数")
+    return parsed_value
+
+
+def parse_optional_positive_int(value, field_label):
+    parsed_value = parse_int(value)
+    if parsed_value is None:
+        return None
+    if parsed_value <= 0:
+        raise ValueError(f"{field_label}必须为正整数")
+    return parsed_value
+
+
+def extract_error_reason(exc):
+    message = getattr(exc, "msg", None) or str(exc)
+    message = (message or "数据库操作失败，请检查输入和数据库状态。").strip()
+    if not message:
+        return "数据库操作失败，请检查输入和数据库状态。"
+
+    first_line = message.splitlines()[0].strip()
+    if "): " in first_line:
+        first_line = first_line.split("): ", 1)[1].strip()
+    if "Traceback" in first_line:
+        return "数据库操作失败，请检查输入和数据库状态。"
+    return first_line
+
+
+def operation_error(prefix, exc):
+    return f"{prefix}：{extract_error_reason(exc)}"
 
 
 def finish_group_order(group_order_id):
@@ -481,15 +517,21 @@ def create_app():
                 "coupon_id": request.form.get("coupon_id", "").strip(),
             }
             try:
-                params = (
-                    parse_int(form_data["group_order_id"]),
-                    parse_int(form_data["student_id"]),
-                    parse_int(form_data["drink_id"]),
-                    parse_int(form_data["coupon_id"]),
-                    parse_int(form_data["quantity"]),
+                group_order_id = parse_required_positive_int(
+                    form_data["group_order_id"], "拼单编号"
                 )
-                if any(value is None for value in params[:3]) or params[4] is None:
-                    raise ValueError("拼单编号、学生编号、饮品编号和购买数量不能为空")
+                student_id = parse_required_positive_int(
+                    form_data["student_id"], "学生编号"
+                )
+                drink_id = parse_required_positive_int(
+                    form_data["drink_id"], "饮品编号"
+                )
+                coupon_id = parse_optional_positive_int(
+                    form_data["coupon_id"], "优惠券编号"
+                )
+                quantity = parse_required_positive_int(
+                    form_data["quantity"], "购买数量"
+                )
 
                 order_item_id = execute_write(
                     """
@@ -501,7 +543,7 @@ def create_app():
                         quantity
                     ) VALUES (%s, %s, %s, %s, %s)
                     """,
-                    params,
+                    (group_order_id, student_id, drink_id, coupon_id, quantity),
                 )
                 message = f"加入拼单成功，订单明细编号：{order_item_id}"
                 message_type = "success"
@@ -509,7 +551,7 @@ def create_app():
                 message = str(exc) or "请输入有效数字"
                 message_type = "error"
             except Exception as exc:
-                message = f"加入拼单失败：{exc}"
+                message = operation_error("加入拼单失败", exc)
                 message_type = "error"
 
         return render_template(
@@ -532,9 +574,9 @@ def create_app():
                 "group_order_id": request.form.get("group_order_id", "").strip()
             }
             try:
-                group_order_id = parse_int(form_data["group_order_id"])
-                if group_order_id is None:
-                    raise ValueError("拼单编号不能为空")
+                group_order_id = parse_required_positive_int(
+                    form_data["group_order_id"], "拼单编号"
+                )
 
                 finish_group_order(group_order_id)
                 message = "拼单完成成功"
@@ -543,7 +585,7 @@ def create_app():
                 message = str(exc)
                 message_type = "error"
             except Exception as exc:
-                message = f"拼单完成失败：{exc}"
+                message = operation_error("拼单完成失败", exc)
                 message_type = "error"
 
         return render_template(
@@ -564,9 +606,9 @@ def create_app():
                 "group_order_id": request.form.get("group_order_id", "").strip()
             }
             try:
-                group_order_id = parse_int(form_data["group_order_id"])
-                if group_order_id is None:
-                    raise ValueError("拼单编号不能为空")
+                group_order_id = parse_required_positive_int(
+                    form_data["group_order_id"], "拼单编号"
+                )
 
                 summary = cancel_group_order_transaction(group_order_id)
                 message = (
@@ -580,7 +622,7 @@ def create_app():
                 message = str(exc)
                 message_type = "error"
             except Exception as exc:
-                message = f"取消拼单失败：{exc}"
+                message = operation_error("取消拼单失败", exc)
                 message_type = "error"
 
         return render_template(
@@ -610,7 +652,7 @@ def create_app():
             message = str(exc)
             message_type = "error"
         except Exception as exc:
-            message = f"查询失败：{exc}"
+            message = operation_error("查询失败", exc)
             message_type = "error"
 
         return render_template(
