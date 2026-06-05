@@ -489,6 +489,30 @@ def create_app():
             message_type=message_type,
         )
 
+    @app.route("/logs")
+    def operation_logs():
+        rows = []
+        message = None
+        message_type = None
+        try:
+            rows = fetch_all(
+                """
+                SELECT log_id, op_type, detail, created_at
+                FROM operation_logs
+                ORDER BY created_at DESC, log_id DESC
+                """
+            )
+        except Exception:
+            message = "操作日志暂时不可用，请确认数据库连接和表结构。"
+            message_type = "error"
+
+        return render_template(
+            "operation_logs.html",
+            rows=rows,
+            message=message,
+            message_type=message_type,
+        )
+
     @app.route("/order/add", methods=["GET", "POST"])
     def add_order():
         form_data = {

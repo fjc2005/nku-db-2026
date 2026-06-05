@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}操作日志{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">Operation Logs</p>
+        <h1>操作日志</h1>
+    </div>
+    <a class="back-link" href="{{ url_for('index') }}">返回首页</a>
+</section>
+
+{% if message %}
+<div class="notice notice--{{ message_type }}" role="status">{{ message }}</div>
+{% endif %}
+
+<section class="table-panel">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>日志编号</th>
+                    <th>操作类型</th>
+                    <th>操作说明</th>
+                    <th>操作时间</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>{{ row.log_id }}</td>
+                    <td>{{ row.op_type }}</td>
+                    <td>{{ row.detail }}</td>
+                    <td>{{ row.created_at }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">暂无操作日志</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
