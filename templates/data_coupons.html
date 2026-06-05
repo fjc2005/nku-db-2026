@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}优惠券列表{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">Coupons</p>
+        <h1>优惠券列表</h1>
+    </div>
+    <a class="back-link" href="{{ url_for('index') }}">返回首页</a>
+</section>
+
+{% if message %}
+<div class="notice notice--{{ message_type }}" role="status">{{ message }}</div>
+{% endif %}
+
+<section class="table-panel">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>优惠券编号</th>
+                    <th>学生姓名</th>
+                    <th>优惠券名称</th>
+                    <th>优惠金额</th>
+                    <th>最低使用金额</th>
+                    <th>有效期</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>{{ row.coupon_id }}</td>
+                    <td>{{ row.student_name }}</td>
+                    <td>{{ row.coupon_name }}</td>
+                    <td>{{ row.amount }}</td>
+                    <td>{{ row.min_order_amount }}</td>
+                    <td>{{ row.valid_until }}</td>
+                    <td>{{ row.status }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7">暂无优惠券数据</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

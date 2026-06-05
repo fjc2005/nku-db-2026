@@ -329,6 +329,69 @@ def create_app():
             message_type=message_type,
         )
 
+    @app.route("/data/drinks")
+    def data_drinks():
+        rows = []
+        message = None
+        message_type = None
+        try:
+            rows = fetch_all(
+                """
+                SELECT
+                    d.drink_id,
+                    sh.shop_name,
+                    d.drink_name,
+                    d.price,
+                    d.stock,
+                    d.status
+                FROM drinks d
+                JOIN shops sh ON d.shop_id = sh.shop_id
+                ORDER BY d.drink_id
+                """
+            )
+        except Exception:
+            message = "饮品数据暂时不可用，请确认数据库连接和表结构。"
+            message_type = "error"
+
+        return render_template(
+            "data_drinks.html",
+            rows=rows,
+            message=message,
+            message_type=message_type,
+        )
+
+    @app.route("/data/coupons")
+    def data_coupons():
+        rows = []
+        message = None
+        message_type = None
+        try:
+            rows = fetch_all(
+                """
+                SELECT
+                    c.coupon_id,
+                    s.name AS student_name,
+                    c.coupon_name,
+                    c.amount,
+                    c.min_order_amount,
+                    c.valid_until,
+                    c.status
+                FROM coupons c
+                JOIN students s ON c.student_id = s.student_id
+                ORDER BY c.coupon_id
+                """
+            )
+        except Exception:
+            message = "优惠券数据暂时不可用，请确认数据库连接和表结构。"
+            message_type = "error"
+
+        return render_template(
+            "data_coupons.html",
+            rows=rows,
+            message=message,
+            message_type=message_type,
+        )
+
     @app.route("/order/add", methods=["GET", "POST"])
     def add_order():
         form_data = {
