@@ -1,6 +1,6 @@
 # 校园奶茶拼单系统
 
-这是一个基于 Flask + MySQL 的 P0 数据库工程演示系统，用于展示校园奶茶拼单的核心数据库操作流程。
+这是一个基于 Flask + MySQL 的 P0/P1 数据库工程演示系统，用于展示校园奶茶拼单的核心数据库操作流程和演示辅助页面。
 
 ## 包含内容
 
@@ -38,7 +38,7 @@ pip install -r requirements.txt
 mysql -u <db_user> -p < schema.sql
 ```
 
-该脚本会重建 `milk_tea_group_db`，并创建 P0 所需的数据表、演示数据、触发器、存储过程和视图。
+该脚本会重建 `milk_tea_group_db`，并创建 P0/P1 所需的数据表、演示数据、触发器、存储过程、视图和操作日志基础数据。
 
 ## 数据库连接配置
 
@@ -94,9 +94,19 @@ python -c "from app import app; app.run(host='127.0.0.1', port=5001, debug=True)
 | 取消拼单 | `/group/cancel` | 演示显式事务删除操作 |
 | 查询拼单详情 | `/group/query` | 演示基于视图的多表查询 |
 
+## P1 页面
+
+| 页面 | 路径 | 用途 |
+| --- | --- | --- |
+| 学生列表 | `/data/students` | 查看学生编号、姓名、手机号和状态 |
+| 店铺列表 | `/data/shops` | 查看店铺名称、校区位置和状态 |
+| 饮品列表 | `/data/drinks` | 查看饮品价格、库存和状态变化 |
+| 优惠券列表 | `/data/coupons` | 查看优惠券金额、有效期和使用状态 |
+| 操作日志 | `/logs` | 查看加入、完成和取消拼单的关键操作日志 |
+
 ## 演示输入
 
-推荐输入值和预期结果见 `docs/DEMO_CASES.md`。重复执行取消拼单等破坏性演示前，建议重新执行 `schema.sql` 重置数据库。
+推荐输入值、P1 演示路线和预期结果见 `docs/DEMO_CASES.md`。重复执行取消拼单等破坏性演示前，建议重新执行 `schema.sql` 重置数据库。
 
 ## 常见问题
 
@@ -107,7 +117,7 @@ python -c "from app import app; app.run(host='127.0.0.1', port=5001, debug=True)
 
 # Campus Milk Tea Group Ordering System
 
-This is a P0 Flask + MySQL database engineering demo system for the core workflows of a campus milk tea group-ordering scenario.
+This is a P0/P1 Flask + MySQL database engineering demo system for the core workflows and demo helper pages of a campus milk tea group-ordering scenario.
 
 ## What Is Included
 
@@ -145,7 +155,7 @@ Create or reset the database by executing `schema.sql` with a MySQL client:
 mysql -u <db_user> -p < schema.sql
 ```
 
-The script recreates `milk_tea_group_db`, creates all P0 tables, seed data, trigger, stored procedure, and view.
+The script recreates `milk_tea_group_db`, creates all P0/P1 tables, seed data, trigger, stored procedure, view, and operation log seed data.
 
 ## Connection Configuration
 
@@ -201,9 +211,19 @@ python -c "from app import app; app.run(host='127.0.0.1', port=5001, debug=True)
 | Cancel group order | `/group/cancel` | Explicit transaction delete |
 | Query group detail | `/group/query` | View-based multi-table query |
 
+## P1 Pages
+
+| Page | Path | Purpose |
+| --- | --- | --- |
+| Students | `/data/students` | View student number, name, phone, and status |
+| Shops | `/data/shops` | View shop name, campus location, and status |
+| Drinks | `/data/drinks` | View drink price, inventory, and status changes |
+| Coupons | `/data/coupons` | View coupon amount, validity date, and usage status |
+| Operation logs | `/logs` | View key add, finish, and cancel operation logs |
+
 ## Demo Inputs
 
-Use `docs/DEMO_CASES.md` for the recommended input values and expected results. Re-run `schema.sql` before repeating a destructive demo such as canceling a group order.
+Use `docs/DEMO_CASES.md` for the recommended input values, P1 demo route, and expected results. Re-run `schema.sql` before repeating a destructive demo such as canceling a group order.
 
 ## Common Issues
 
