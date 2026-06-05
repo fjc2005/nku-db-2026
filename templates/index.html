@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}校园奶茶拼单系统{% endblock %}
+
+{% block content %}
+<section class="overview">
+    <div class="overview__copy">
+        <p class="eyebrow">Campus Group Order</p>
+        <h1>校园奶茶拼单系统</h1>
+        <p class="overview__summary">
+            面向数据库工程演示的 Flask 应用骨架已就绪，后续阶段将逐步接入 MySQL 表、触发器、存储过程、事务和视图。
+        </p>
+    </div>
+</section>
+
+<section class="stats-grid" aria-label="系统统计">
+    {% for stat in stats %}
+    <article class="stat-card">
+        <span class="stat-card__label">{{ stat.label }}</span>
+        <strong class="stat-card__value">{{ stat.value }}</strong>
+        <span class="stat-card__status">{{ stat.status }}</span>
+    </article>
+    {% endfor %}
+</section>
+
+<section class="stage-panel">
+    <h2>当前阶段</h2>
+    <p>项目骨架、依赖文件、基础模板和静态样式已建立。</p>
+</section>
+{% endblock %}
