@@ -143,7 +143,7 @@ INSERT INTO group_orders (
     (1, 1, 1, 'East Lunch Group Order', DATE_ADD(NOW(), INTERVAL 4 HOUR), 'OPEN', 0.00),
     (2, 1, 2, 'Study Room Group Order', DATE_ADD(NOW(), INTERVAL 6 HOUR), 'OPEN', 0.00),
     (3, 1, 1, 'Finished Demo Group Order', DATE_SUB(NOW(), INTERVAL 1 DAY), 'FINISHED', 24.00),
-    (4, 1, 1, 'Canceled Demo Group Order', DATE_SUB(NOW(), INTERVAL 2 DAY), 'CANCELED', 0.00),
+    (4, 1, 1, 'Canceled Demo Group Order', DATE_SUB(NOW(), INTERVAL 2 DAY), 'CANCELED', 15.00),
     (5, 1, 4, 'Cancel Transaction Demo', DATE_ADD(NOW(), INTERVAL 8 HOUR), 'OPEN', 0.00);
 
 INSERT INTO coupons (
@@ -175,7 +175,8 @@ INSERT INTO order_items (
 ) VALUES
     (1, 2, 2, 2, NULL, 1, 15.00, 0.00, 15.00, 'CREATED'),
     (2, 3, 1, 1, NULL, 2, 24.00, 0.00, 24.00, 'PAID'),
-    (3, 5, 2, 1, 5, 1, 12.00, 4.00, 8.00, 'CREATED');
+    (3, 5, 2, 1, 5, 1, 12.00, 4.00, 8.00, 'CREATED'),
+    (4, 4, 4, 2, NULL, 1, 15.00, 0.00, 15.00, 'CANCELED');
 
 INSERT INTO operation_logs (log_id, op_type, detail) VALUES
     (1, 'INIT_SCHEMA', 'Seed data initialized for P0 database demos.');
@@ -343,6 +344,35 @@ BEGIN
 END//
 
 DELIMITER ;
+
+CREATE VIEW v_group_order_detail AS
+SELECT
+    go.group_order_id,
+    go.title AS group_title,
+    go.status AS group_status,
+    go.total_amount AS group_total_amount,
+    go.deadline_at,
+    go.created_at AS group_created_at,
+    sh.shop_id,
+    sh.shop_name,
+    oi.order_item_id,
+    oi.quantity,
+    oi.item_amount,
+    oi.discount_amount,
+    oi.pay_amount,
+    oi.status AS item_status,
+    oi.created_at AS item_created_at,
+    s.student_id,
+    s.student_no,
+    s.name AS student_name,
+    d.drink_id,
+    d.drink_name,
+    d.price AS drink_price
+FROM group_orders go
+JOIN order_items oi ON go.group_order_id = oi.group_order_id
+JOIN students s ON oi.student_id = s.student_id
+JOIN drinks d ON oi.drink_id = d.drink_id
+JOIN shops sh ON go.shop_id = sh.shop_id;
 
 DELIMITER //
 
