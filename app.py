@@ -1,6 +1,6 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
-from db import fetch_one
+from db import execute_write, fetch_one
 
 
 STAT_QUERIES = [
@@ -39,6 +39,16 @@ def fallback_stats():
         {"label": item["label"], "value": "--", "status": "数据库暂不可用"}
         for item in STAT_QUERIES
     ]
+
+
+def parse_int(value):
+    value = value.strip()
+    if not value:
+        return None
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise ValueError("请输入有效数字") from exc
 
 
 def create_app():
@@ -80,6 +90,65 @@ def create_app():
             actions=actions,
             database_error=database_error,
             stats=stats,
+        )
+
+    @app.route("/order/add", methods=["GET", "POST"])
+    def add_order():
+        form_data = {
+            "group_order_id": "1",
+            "student_id": "1",
+            "drink_id": "1",
+            "quantity": "1",
+            "coupon_id": "1",
+        }
+        message = None
+        message_type = None
+
+        if request.method == "POST":
+            form_data = {
+                "group_order_id": request.form.get("group_order_id", "").strip(),
+                "student_id": request.form.get("student_id", "").strip(),
+                "drink_id": request.form.get("drink_id", "").strip(),
+                "quantity": request.form.get("quantity", "").strip(),
+                "coupon_id": request.form.get("coupon_id", "").strip(),
+            }
+            try:
+                params = (
+                    parse_int(form_data["group_order_id"]),
+                    parse_int(form_data["student_id"]),
+                    parse_int(form_data["drink_id"]),
+                    parse_int(form_data["coupon_id"]),
+                    parse_int(form_data["quantity"]),
+                )
+                if any(value is None for value in params[:3]) or params[4] is None:
+                    raise ValueError("拼单编号、学生编号、饮品编号和购买数量不能为空")
+
+                order_item_id = execute_write(
+                    """
+                    INSERT INTO order_items (
+                        group_order_id,
+                        student_id,
+                        drink_id,
+                        coupon_id,
+                        quantity
+                    ) VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    params,
+                )
+                message = f"加入拼单成功，订单明细编号：{order_item_id}"
+                message_type = "success"
+            except ValueError as exc:
+                message = str(exc) or "请输入有效数字"
+                message_type = "error"
+            except Exception as exc:
+                message = f"加入拼单失败：{exc}"
+                message_type = "error"
+
+        return render_template(
+            "add_order.html",
+            form_data=form_data,
+            message=message,
+            message_type=message_type,
         )
 
     return app
