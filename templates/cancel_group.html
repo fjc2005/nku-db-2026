@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}取消拼单{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">Cancel Group</p>
+        <h1>取消拼单</h1>
+    </div>
+    <a class="back-link" href="{{ url_for('index') }}">返回首页</a>
+</section>
+
+{% if message %}
+<div class="notice notice--{{ message_type }}" role="status">{{ message }}</div>
+{% endif %}
+
+<form class="form-panel" method="post">
+    <div class="form-grid form-grid--single">
+        <label class="field">
+            <span>拼单编号</span>
+            <input type="number" name="group_order_id" min="1" required value="{{ form_data.group_order_id }}">
+        </label>
+    </div>
+
+    <div class="button-row">
+        <button class="primary-button" type="submit">取消拼单</button>
+    </div>
+</form>
+{% endblock %}

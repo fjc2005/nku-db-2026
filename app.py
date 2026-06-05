@@ -326,6 +326,43 @@ def create_app():
             message_type=message_type,
         )
 
+    @app.route("/group/cancel", methods=["GET", "POST"])
+    def cancel_group():
+        form_data = {"group_order_id": "5"}
+        message = None
+        message_type = None
+
+        if request.method == "POST":
+            form_data = {
+                "group_order_id": request.form.get("group_order_id", "").strip()
+            }
+            try:
+                group_order_id = parse_int(form_data["group_order_id"])
+                if group_order_id is None:
+                    raise ValueError("拼单编号不能为空")
+
+                summary = cancel_group_order_transaction(group_order_id)
+                message = (
+                    "取消拼单成功，"
+                    f"删除明细 {summary['deleted_items']} 条，"
+                    f"恢复饮品 {summary['restored_drinks']} 类，"
+                    f"恢复优惠券 {summary['restored_coupons']} 张"
+                )
+                message_type = "success"
+            except ValueError as exc:
+                message = str(exc)
+                message_type = "error"
+            except Exception as exc:
+                message = f"取消拼单失败：{exc}"
+                message_type = "error"
+
+        return render_template(
+            "cancel_group.html",
+            form_data=form_data,
+            message=message,
+            message_type=message_type,
+        )
+
     return app
 
 
