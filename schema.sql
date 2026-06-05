@@ -333,7 +333,7 @@ BEGIN
 
     INSERT INTO operation_logs (op_type, detail)
     VALUES (
-        'ADD_ORDER',
+        'ADD_ORDER_ITEM',
         CONCAT(
             'student_id=', NEW.student_id,
             ', group_order_id=', NEW.group_order_id,
