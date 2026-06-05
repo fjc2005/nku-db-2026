@@ -8,10 +8,14 @@
         <p class="eyebrow">Campus Group Order</p>
         <h1>校园奶茶拼单系统</h1>
         <p class="overview__summary">
-            面向数据库工程演示的 Flask 应用骨架已就绪，后续阶段将逐步接入 MySQL 表、触发器、存储过程、事务和视图。
+            面向数据库工程演示的 Flask + MySQL 小型 B/S 系统，用于展示拼单数据表、触发器、存储过程、事务和视图。
         </p>
     </div>
 </section>
+
+{% if database_error %}
+<div class="notice" role="status">{{ database_error }}</div>
+{% endif %}
 
 <section class="stats-grid" aria-label="系统统计">
     {% for stat in stats %}
@@ -23,8 +27,15 @@
     {% endfor %}
 </section>
 
-<section class="stage-panel">
-    <h2>当前阶段</h2>
-    <p>项目骨架、依赖文件、基础模板和静态样式已建立。</p>
+<section class="action-panel">
+    <h2>P0 操作入口</h2>
+    <div class="action-grid">
+        {% for action in actions %}
+        <a class="action-card" href="{{ action.href }}">
+            <span class="action-card__title">{{ action.title }}</span>
+            <span class="action-card__description">{{ action.description }}</span>
+        </a>
+        {% endfor %}
+    </div>
 </section>
 {% endblock %}

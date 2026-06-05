@@ -95,10 +95,20 @@ h2 {
 }
 
 .overview__summary,
-.stage-panel p {
+.action-card__description {
     color: var(--muted);
     font-size: 16px;
     line-height: 1.7;
+}
+
+.notice {
+    margin: 24px 0 0;
+    padding: 14px 16px;
+    background: #fff8ed;
+    border: 1px solid #f1cf9c;
+    border-radius: 8px;
+    color: #7a4b08;
+    line-height: 1.6;
 }
 
 .stats-grid {
@@ -143,9 +153,41 @@ h2 {
     font-size: 13px;
 }
 
-.stage-panel {
+.action-panel {
     padding: 24px 0 0;
     border-top: 1px solid var(--line);
+}
+
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.action-card {
+    min-height: 132px;
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.action-card:hover {
+    border-color: var(--teal);
+}
+
+.action-card__title {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.action-card__description {
+    font-size: 14px;
 }
 
 @media (max-width: 720px) {
@@ -162,6 +204,10 @@ h2 {
     }
 
     .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-grid {
         grid-template-columns: 1fr;
     }
 
