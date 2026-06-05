@@ -1,4 +1,4 @@
-# P0 任务实现索引
+# P0/P1 任务实现索引
 
 本文档用于作为后续 agent 的轻量上下文入口。正式开发时优先保留本索引，再按当前 stage 打开对应的需求片段和计划片段，避免一次性加载完整文档。
 
@@ -8,7 +8,7 @@
 2. 行号格式为 `文档路径:L起始-L结束`。
 3. 每个 stage 开始前先读取“公共上下文”和本 stage 对应条目。
 4. 每个 stage 必须遵循 `plan -> develop -> verify -> commit` 闭环。
-5. P0 阶段只实现最低评分必需功能；P1/P2 需求仅作后续扩展参考。
+5. P0/P1 均按对应 stage 计划推进；P2 需求仅作后续扩展参考。
 
 ## 公共上下文
 
@@ -19,10 +19,13 @@
 | 数据库评分映射表 | `docs/REQUIREMENT.md:L1727-L1740` |
 | P0 页面清单 | `docs/REQUIREMENT.md:L1741-L1752` |
 | P0 数据库对象清单 | `docs/REQUIREMENT.md:L1753-L1769` |
+| P1 需求范围 | `docs/REQUIREMENT.md:L1422-L1622` |
+| P1 执行约定、范围摘要、Stage Gate 模板 | `docs/P1_BUILD.PLAN.md:L5-L64` |
+| P1 覆盖矩阵、后续执行方式 | `docs/P1_BUILD.PLAN.md:L399-L424` |
 | 最终交付物、推荐目录结构、P0 完成判定 | `docs/REQUIREMENT.md:L1984-L2042` |
 | P0 覆盖矩阵、后续执行方式 | `docs/P0_BUILD.PLAN.md:L533-L559` |
 
-## Stage 对照目录
+## P0 Stage 对照目录
 
 | Stage | 任务 | 需求文档索引 | 实现计划索引 | 本 stage 取用重点 |
 | --- | --- | --- | --- | --- |
@@ -44,6 +47,22 @@
 | Stage 15 | 报告素材与截图清单 | `docs/REQUIREMENT.md:L1259-L1421`, `docs/REPORT_TEMPLATE.md:L1-L225` | `docs/P0_BUILD.PLAN.md:L475-L502` | 建立报告填写、页面截图、代码截图和关系图素材清单。 |
 | Stage 16 | P0 总体验收与修正 | `docs/REQUIREMENT.md:L2023-L2042`, `docs/REQUIREMENT.md:L1727-L1904`, `docs/REQUIREMENT.md:L1984-L2000` | `docs/P0_BUILD.PLAN.md:L503-L532` | 从干净数据库完整重放 P0，修正验收发现的问题。 |
 
+## P1 Stage 对照目录
+
+| Stage | 任务 | 需求文档索引 | 实现计划索引 | 本 stage 取用重点 |
+| --- | --- | --- | --- | --- |
+| Stage 00 | P1 搭建计划基线 | `docs/REQUIREMENT.md:L1422-L1622` | `docs/P1_BUILD.PLAN.md:L67-L91` | 建立 P1 计划基线，不写代码。 |
+| Stage 01 | P0 基线回归与 P1 验收清单 | `docs/REQUIREMENT.md:L1422-L1622`, `docs/REQUIREMENT.md:L2023-L2042` | `docs/P1_BUILD.PLAN.md:L93-L120` | 先确认 P0 可运行，再建立 P1 验收清单。 |
+| Stage 02 | 学生与店铺列表页面 | `docs/REQUIREMENT.md:L1426-L1447` | `docs/P1_BUILD.PLAN.md:L122-L150` | 页面路径 `/data/students` 和 `/data/shops`，只读展示基础数据。 |
+| Stage 03 | 饮品与优惠券列表页面 | `docs/REQUIREMENT.md:L1450-L1470` | `docs/P1_BUILD.PLAN.md:L152-L181` | 页面路径 `/data/drinks` 和 `/data/coupons`，展示库存和优惠券状态变化。 |
+| Stage 04 | 加入拼单动态下拉表单 | `docs/REQUIREMENT.md:L1473-L1517` | `docs/P1_BUILD.PLAN.md:L183-L213` | `/order/add` 使用学生、拼单、饮品、优惠券数据库下拉选项。 |
+| Stage 05 | 表单校验与友好错误提示 | `docs/REQUIREMENT.md:L1566-L1590` | `docs/P1_BUILD.PLAN.md:L215-L245` | 处理空值、数量校验和数据库错误页面提示，不暴露堆栈。 |
+| Stage 06 | 成功业务操作日志写入 | `docs/REQUIREMENT.md:L1520-L1552` | `docs/P1_BUILD.PLAN.md:L247-L276` | 加入、完成、取消成功后写入 `operation_logs`。 |
+| Stage 07 | 操作日志查看页面 | `docs/REQUIREMENT.md:L1555-L1562` | `docs/P1_BUILD.PLAN.md:L278-L306` | 页面路径 `/logs`，按时间倒序展示操作日志。 |
+| Stage 08 | 首页演示入口与统计卡片增强 | `docs/REQUIREMENT.md:L1594-L1619` | `docs/P1_BUILD.PLAN.md:L308-L336` | 首页展示四类评分操作入口和五个核心统计卡片。 |
+| Stage 09 | P1 演示说明与运行文档补充 | `docs/REQUIREMENT.md:L1450-L1470`, `docs/REQUIREMENT.md:L1520-L1562`, `docs/REQUIREMENT.md:L1594-L1619` | `docs/P1_BUILD.PLAN.md:L338-L365` | 补充 P1 演示路线、截图点和页面入口说明。 |
+| Stage 10 | P1 总体验收与回归修正 | `docs/REQUIREMENT.md:L1422-L1622` | `docs/P1_BUILD.PLAN.md:L367-L397` | 从干净数据库完整重放 P0 和 P1，修正验收发现的问题。 |
+
 ## 需求速查
 
 | 需求类别 | 索引 |
@@ -57,6 +76,11 @@
 | P0 视图查询需求 | `docs/REQUIREMENT.md:L1117-L1258` |
 | P0 报告与截图需求 | `docs/REQUIREMENT.md:L1259-L1421` |
 | P0 演示数据要求 | `docs/REQUIREMENT.md:L1770-L1904` |
+| P1 基础数据管理需求 | `docs/REQUIREMENT.md:L1426-L1470` |
+| P1 表单体验需求 | `docs/REQUIREMENT.md:L1473-L1517` |
+| P1 操作日志需求 | `docs/REQUIREMENT.md:L1520-L1562` |
+| P1 错误提示需求 | `docs/REQUIREMENT.md:L1566-L1590` |
+| P1 演示辅助需求 | `docs/REQUIREMENT.md:L1594-L1619` |
 | 非功能需求 | `docs/REQUIREMENT.md:L1905-L1983` |
 
 ## Agent 执行提示
