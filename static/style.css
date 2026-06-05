@@ -233,6 +233,11 @@ h2 {
     gap: 18px;
 }
 
+.form-grid--single {
+    max-width: 420px;
+    grid-template-columns: 1fr;
+}
+
 .field {
     display: flex;
     flex-direction: column;

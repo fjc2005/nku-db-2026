@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 
-from db import execute_write, fetch_one
+from db import execute_write, fetch_one, get_connection
 
 
 STAT_QUERIES = [
@@ -49,6 +49,27 @@ def parse_int(value):
         return int(value)
     except ValueError as exc:
         raise ValueError("请输入有效数字") from exc
+
+
+def finish_group_order(group_order_id):
+    connection = None
+    cursor = None
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+        cursor.callproc("sp_finish_group_order", (group_order_id,))
+        for result in cursor.stored_results():
+            result.fetchall()
+        connection.commit()
+    except Exception:
+        if connection is not None:
+            connection.rollback()
+        raise
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if connection is not None and connection.is_connected():
+            connection.close()
 
 
 def create_app():
@@ -146,6 +167,38 @@ def create_app():
 
         return render_template(
             "add_order.html",
+            form_data=form_data,
+            message=message,
+            message_type=message_type,
+        )
+
+    @app.route("/group/finish", methods=["GET", "POST"])
+    def finish_group():
+        form_data = {"group_order_id": "2"}
+        message = None
+        message_type = None
+
+        if request.method == "POST":
+            form_data = {
+                "group_order_id": request.form.get("group_order_id", "").strip()
+            }
+            try:
+                group_order_id = parse_int(form_data["group_order_id"])
+                if group_order_id is None:
+                    raise ValueError("拼单编号不能为空")
+
+                finish_group_order(group_order_id)
+                message = "拼单完成成功"
+                message_type = "success"
+            except ValueError as exc:
+                message = str(exc)
+                message_type = "error"
+            except Exception as exc:
+                message = f"拼单完成失败：{exc}"
+                message_type = "error"
+
+        return render_template(
+            "finish_group.html",
             form_data=form_data,
             message=message,
             message_type=message_type,
