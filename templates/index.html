@@ -28,9 +28,21 @@
 </section>
 
 <section class="action-panel">
-    <h2>P0 操作入口</h2>
+    <h2>评分操作入口</h2>
     <div class="action-grid">
         {% for action in actions %}
+        <a class="action-card" href="{{ action.href }}">
+            <span class="action-card__title">{{ action.title }}</span>
+            <span class="action-card__description">{{ action.description }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="action-panel">
+    <h2>数据查看入口</h2>
+    <div class="action-grid">
+        {% for action in data_actions %}
         <a class="action-card" href="{{ action.href }}">
             <span class="action-card__title">{{ action.title }}</span>
             <span class="action-card__description">{{ action.description }}</span>

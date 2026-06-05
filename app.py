@@ -9,6 +9,10 @@ STAT_QUERIES = [
         "sql": "SELECT COUNT(*) AS count_value FROM students",
     },
     {
+        "label": "店铺数",
+        "sql": "SELECT COUNT(*) AS count_value FROM shops",
+    },
+    {
         "label": "饮品数",
         "sql": "SELECT COUNT(*) AS count_value FROM drinks",
     },
@@ -16,6 +20,11 @@ STAT_QUERIES = [
         "label": "进行中拼单",
         "sql": "SELECT COUNT(*) AS count_value FROM group_orders WHERE status = %s",
         "params": ("OPEN",),
+    },
+    {
+        "label": "已完成拼单",
+        "sql": "SELECT COUNT(*) AS count_value FROM group_orders WHERE status = %s",
+        "params": ("FINISHED",),
     },
 ]
 
@@ -371,9 +380,37 @@ def create_app():
                 "href": "/group/query",
             },
         ]
+        data_actions = [
+            {
+                "title": "学生列表",
+                "description": "查看学生编号、姓名、手机号和状态。",
+                "href": "/data/students",
+            },
+            {
+                "title": "店铺列表",
+                "description": "查看奶茶店校区位置和营业状态。",
+                "href": "/data/shops",
+            },
+            {
+                "title": "饮品库存",
+                "description": "查看饮品价格、库存和上下架状态。",
+                "href": "/data/drinks",
+            },
+            {
+                "title": "优惠券状态",
+                "description": "查看优惠券金额、有效期和使用状态。",
+                "href": "/data/coupons",
+            },
+            {
+                "title": "操作日志",
+                "description": "查看关键业务操作的倒序日志。",
+                "href": "/logs",
+            },
+        ]
         return render_template(
             "index.html",
             actions=actions,
+            data_actions=data_actions,
             database_error=database_error,
             stats=stats,
         )
