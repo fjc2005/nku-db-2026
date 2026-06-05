@@ -60,7 +60,7 @@ Example:
 export DB_HOST=127.0.0.1
 export DB_PORT=3306
 export DB_USER=<db_user>
-export DB_PASSWORD=<db_password>
+export DB_PASSWORD=<database_password>
 export DB_NAME=milk_tea_group_db
 export DB_CHARSET=utf8mb4
 ```
