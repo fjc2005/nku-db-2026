@@ -343,3 +343,68 @@ BEGIN
 END//
 
 DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE sp_finish_group_order(IN p_group_order_id INT)
+BEGIN
+    DECLARE v_group_count INT DEFAULT 0;
+    DECLARE v_group_status VARCHAR(16);
+    DECLARE v_created_item_count INT DEFAULT 0;
+    DECLARE v_total_amount DECIMAL(10, 2) DEFAULT 0.00;
+
+    SELECT COUNT(*), MAX(status)
+    INTO v_group_count, v_group_status
+    FROM group_orders
+    WHERE group_order_id = p_group_order_id;
+
+    IF v_group_count = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '拼单不存在，不能完成';
+    END IF;
+
+    IF v_group_status <> 'OPEN' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '拼单不是进行中状态，不能完成';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO v_created_item_count
+    FROM order_items
+    WHERE group_order_id = p_group_order_id
+      AND status = 'CREATED';
+
+    IF v_created_item_count = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '拼单没有待完成订单明细，不能完成';
+    END IF;
+
+    SELECT COALESCE(SUM(pay_amount), 0.00)
+    INTO v_total_amount
+    FROM order_items
+    WHERE group_order_id = p_group_order_id;
+
+    UPDATE group_orders go
+    JOIN (
+        SELECT group_order_id, SUM(pay_amount) AS total_amount
+        FROM order_items
+        WHERE group_order_id = p_group_order_id
+        GROUP BY group_order_id
+    ) item_summary ON go.group_order_id = item_summary.group_order_id
+    SET
+        go.total_amount = item_summary.total_amount,
+        go.status = 'FINISHED'
+    WHERE go.group_order_id = p_group_order_id;
+
+    UPDATE order_items
+    SET status = 'PAID'
+    WHERE group_order_id = p_group_order_id;
+
+    INSERT INTO operation_logs (op_type, detail)
+    VALUES (
+        'FINISH_GROUP_ORDER',
+        CONCAT('group_order_id=', p_group_order_id, ', total_amount=', v_total_amount)
+    );
+END//
+
+DELIMITER ;
