@@ -4,6 +4,7 @@ CREATE DATABASE milk_tea_group_db
     COLLATE utf8mb4_unicode_ci;
 
 USE milk_tea_group_db;
+SET NAMES utf8mb4;
 
 CREATE TABLE students (
     student_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -178,3 +179,167 @@ INSERT INTO order_items (
 
 INSERT INTO operation_logs (log_id, op_type, detail) VALUES
     (1, 'INIT_SCHEMA', 'Seed data initialized for P0 database demos.');
+
+DELIMITER //
+
+CREATE TRIGGER trg_before_order_item_insert
+BEFORE INSERT ON order_items
+FOR EACH ROW
+BEGIN
+    DECLARE v_student_count INT DEFAULT 0;
+    DECLARE v_student_status VARCHAR(16);
+    DECLARE v_group_count INT DEFAULT 0;
+    DECLARE v_group_shop_id INT;
+    DECLARE v_group_status VARCHAR(16);
+    DECLARE v_drink_count INT DEFAULT 0;
+    DECLARE v_drink_shop_id INT;
+    DECLARE v_drink_price DECIMAL(10, 2);
+    DECLARE v_drink_stock INT;
+    DECLARE v_drink_status VARCHAR(16);
+    DECLARE v_coupon_count INT DEFAULT 0;
+    DECLARE v_coupon_student_id INT;
+    DECLARE v_coupon_amount DECIMAL(10, 2) DEFAULT 0.00;
+    DECLARE v_coupon_min_amount DECIMAL(10, 2) DEFAULT 0.00;
+    DECLARE v_coupon_valid_until DATE;
+    DECLARE v_coupon_status VARCHAR(16);
+
+    IF NEW.quantity <= 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '购买数量必须大于0';
+    END IF;
+
+    SELECT COUNT(*), MAX(status)
+    INTO v_student_count, v_student_status
+    FROM students
+    WHERE student_id = NEW.student_id;
+
+    IF v_student_count = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '学生不存在，不能下单';
+    END IF;
+
+    IF v_student_status <> 'ACTIVE' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '学生状态异常，不能下单';
+    END IF;
+
+    SELECT COUNT(*), MAX(shop_id), MAX(status)
+    INTO v_group_count, v_group_shop_id, v_group_status
+    FROM group_orders
+    WHERE group_order_id = NEW.group_order_id;
+
+    IF v_group_count = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '拼单不存在，不能下单';
+    END IF;
+
+    IF v_group_status <> 'OPEN' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '拼单不是进行中状态，不能下单';
+    END IF;
+
+    SELECT COUNT(*), MAX(shop_id), MAX(price), MAX(stock), MAX(status)
+    INTO v_drink_count, v_drink_shop_id, v_drink_price, v_drink_stock, v_drink_status
+    FROM drinks
+    WHERE drink_id = NEW.drink_id;
+
+    IF v_drink_count = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '饮品不存在，不能下单';
+    END IF;
+
+    IF v_drink_status <> 'ON_SALE' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '饮品不是在售状态，不能下单';
+    END IF;
+
+    IF v_drink_shop_id <> v_group_shop_id THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '饮品不属于该拼单店铺，不能下单';
+    END IF;
+
+    IF v_drink_stock < NEW.quantity THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = '饮品库存不足，不能下单';
+    END IF;
+
+    SET NEW.item_amount = v_drink_price * NEW.quantity;
+    SET NEW.discount_amount = 0.00;
+
+    IF NEW.coupon_id IS NOT NULL THEN
+        SELECT
+            COUNT(*),
+            MAX(student_id),
+            MAX(amount),
+            MAX(min_order_amount),
+            MAX(valid_until),
+            MAX(status)
+        INTO
+            v_coupon_count,
+            v_coupon_student_id,
+            v_coupon_amount,
+            v_coupon_min_amount,
+            v_coupon_valid_until,
+            v_coupon_status
+        FROM coupons
+        WHERE coupon_id = NEW.coupon_id;
+
+        IF v_coupon_count = 0 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = '优惠券不存在，不能下单';
+        END IF;
+
+        IF v_coupon_student_id <> NEW.student_id THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = '优惠券不属于当前学生，不能下单';
+        END IF;
+
+        IF v_coupon_status <> 'UNUSED' THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = '优惠券不是未使用状态，不能下单';
+        END IF;
+
+        IF v_coupon_valid_until < CURRENT_DATE THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = '优惠券已过期，不能下单';
+        END IF;
+
+        IF NEW.item_amount < v_coupon_min_amount THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = '订单金额未达到优惠券最低使用金额';
+        END IF;
+
+        IF v_coupon_amount > NEW.item_amount THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = '优惠金额不能大于订单原价';
+        END IF;
+
+        SET NEW.discount_amount = v_coupon_amount;
+    END IF;
+
+    SET NEW.pay_amount = NEW.item_amount - NEW.discount_amount;
+    SET NEW.status = 'CREATED';
+
+    UPDATE drinks
+    SET stock = stock - NEW.quantity
+    WHERE drink_id = NEW.drink_id;
+
+    IF NEW.coupon_id IS NOT NULL THEN
+        UPDATE coupons
+        SET status = 'USED'
+        WHERE coupon_id = NEW.coupon_id;
+    END IF;
+
+    INSERT INTO operation_logs (op_type, detail)
+    VALUES (
+        'ADD_ORDER',
+        CONCAT(
+            'student_id=', NEW.student_id,
+            ', group_order_id=', NEW.group_order_id,
+            ', drink_id=', NEW.drink_id,
+            ', quantity=', NEW.quantity
+        )
+    );
+END//
+
+DELIMITER ;
