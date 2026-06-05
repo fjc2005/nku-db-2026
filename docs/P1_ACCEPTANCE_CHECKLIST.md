@@ -30,13 +30,18 @@ This checklist tracks P1 requirements, implementation targets, verification step
 | Dependencies installed | `pip install -r requirements.txt` after activating the conda environment | Passed |
 | Python syntax | `python -m py_compile app.py db.py` after activating the conda environment | Passed |
 | MySQL client availability | `command -v mysql` | Blocked: CLI client not available in this shell |
-| Clean database replay | Execute `schema.sql` against MySQL | Pending |
-| P0 page smoke | Visit `/`, `/order/add`, `/group/finish`, `/group/cancel`, `/group/query` | Pending |
-| P0 trigger success/failure | Follow `docs/DEMO_CASES.md` add order cases | Pending |
-| P0 stored procedure success/failure | Follow `docs/DEMO_CASES.md` finish group cases | Pending |
-| P0 transaction success/failure | Follow `docs/DEMO_CASES.md` cancel group cases | Pending |
-| P0 view query | Follow `docs/DEMO_CASES.md` query cases | Pending |
+| MySQL service connectivity | Connect with the configured `DB_*` environment values | Blocked: no MySQL service reachable on the configured host and port |
+| Clean database replay | Execute `schema.sql` against MySQL | Blocked by MySQL service availability |
+| P0 page smoke | Visit `/`, `/order/add`, `/group/finish`, `/group/cancel`, `/group/query` | Passed with Flask test client |
+| P1 page smoke | Visit `/data/students`, `/data/shops`, `/data/drinks`, `/data/coupons`, `/logs` | Passed with Flask test client |
+| P0 trigger success/failure | Follow `docs/DEMO_CASES.md` add order cases | Blocked by MySQL service availability |
+| P0 stored procedure success/failure | Follow `docs/DEMO_CASES.md` finish group cases | Blocked by MySQL service availability |
+| P0 transaction success/failure | Follow `docs/DEMO_CASES.md` cancel group cases | Blocked by MySQL service availability |
+| P0 view query | Follow `docs/DEMO_CASES.md` query cases | Blocked by MySQL service availability |
+| P1 form validation smoke | Submit empty fields and invalid quantity with Flask test client | Passed; no traceback text rendered |
+| P1 schema source check | Check `schema.sql` and `app.py` for P1 log types and database objects | Passed |
+| Documentation sensitive-info check | Search README and P1 docs for local absolute paths and password-value patterns | Passed |
 
 ## Final Regression Notes
 
-Implementation for all P1 stages is present in source files and documentation. Final database replay is still required in an environment with a reachable MySQL service and either a MySQL client or an equivalent schema import path.
+Implementation for all P1 stages is present in source files and documentation. Flask page smoke, form validation smoke, Python syntax checks, schema source checks, and documentation sensitive-info checks passed. Full database replay remains blocked until a reachable MySQL service is available and `schema.sql` is imported.
