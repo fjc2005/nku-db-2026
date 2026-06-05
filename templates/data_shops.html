@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}店铺列表{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">Shops</p>
+        <h1>店铺列表</h1>
+    </div>
+    <a class="back-link" href="{{ url_for('index') }}">返回首页</a>
+</section>
+
+{% if message %}
+<div class="notice notice--{{ message_type }}" role="status">{{ message }}</div>
+{% endif %}
+
+<section class="table-panel">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>店铺编号</th>
+                    <th>店铺名称</th>
+                    <th>校区位置</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>{{ row.shop_id }}</td>
+                    <td>{{ row.shop_name }}</td>
+                    <td>{{ row.campus_location }}</td>
+                    <td>{{ row.status }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">暂无店铺数据</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

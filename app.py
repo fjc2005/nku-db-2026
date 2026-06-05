@@ -281,6 +281,54 @@ def create_app():
             stats=stats,
         )
 
+    @app.route("/data/students")
+    def data_students():
+        rows = []
+        message = None
+        message_type = None
+        try:
+            rows = fetch_all(
+                """
+                SELECT student_id, student_no, name, phone, status
+                FROM students
+                ORDER BY student_id
+                """
+            )
+        except Exception:
+            message = "学生数据暂时不可用，请确认数据库连接和表结构。"
+            message_type = "error"
+
+        return render_template(
+            "data_students.html",
+            rows=rows,
+            message=message,
+            message_type=message_type,
+        )
+
+    @app.route("/data/shops")
+    def data_shops():
+        rows = []
+        message = None
+        message_type = None
+        try:
+            rows = fetch_all(
+                """
+                SELECT shop_id, shop_name, campus_location, status
+                FROM shops
+                ORDER BY shop_id
+                """
+            )
+        except Exception:
+            message = "店铺数据暂时不可用，请确认数据库连接和表结构。"
+            message_type = "error"
+
+        return render_template(
+            "data_shops.html",
+            rows=rows,
+            message=message,
+            message_type=message_type,
+        )
+
     @app.route("/order/add", methods=["GET", "POST"])
     def add_order():
         form_data = {
