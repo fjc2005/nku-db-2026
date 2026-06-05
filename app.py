@@ -72,6 +72,128 @@ def finish_group_order(group_order_id):
             connection.close()
 
 
+def cancel_group_order_transaction(group_order_id):
+    connection = None
+    cursor = None
+    try:
+        connection = get_connection()
+        connection.start_transaction()
+        cursor = connection.cursor(dictionary=True)
+
+        cursor.execute(
+            """
+            SELECT group_order_id, status
+            FROM group_orders
+            WHERE group_order_id = %s
+            FOR UPDATE
+            """,
+            (group_order_id,),
+        )
+        group_order = cursor.fetchone()
+        if group_order is None:
+            raise ValueError("拼单不存在")
+
+        if group_order["status"] == "FINISHED":
+            raise ValueError("已完成拼单不能取消")
+        if group_order["status"] == "CANCELED":
+            raise ValueError("已取消拼单不能取消")
+        if group_order["status"] != "OPEN":
+            raise ValueError("拼单不是进行中状态，不能取消")
+
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS item_count
+            FROM order_items
+            WHERE group_order_id = %s
+            """,
+            (group_order_id,),
+        )
+        item_count = cursor.fetchone()["item_count"]
+        if item_count == 0:
+            raise ValueError("拼单没有订单明细，不能取消")
+
+        cursor.execute(
+            """
+            UPDATE drinks d
+            JOIN (
+                SELECT drink_id, SUM(quantity) AS restore_quantity
+                FROM order_items
+                WHERE group_order_id = %s
+                GROUP BY drink_id
+            ) item_summary ON d.drink_id = item_summary.drink_id
+            SET d.stock = d.stock + item_summary.restore_quantity
+            """,
+            (group_order_id,),
+        )
+        restored_drink_rows = cursor.rowcount
+
+        cursor.execute(
+            """
+            UPDATE coupons c
+            JOIN order_items oi ON c.coupon_id = oi.coupon_id
+            SET c.status = 'UNUSED'
+            WHERE oi.group_order_id = %s
+              AND oi.coupon_id IS NOT NULL
+            """,
+            (group_order_id,),
+        )
+        restored_coupon_rows = cursor.rowcount
+
+        cursor.execute(
+            """
+            DELETE oi
+            FROM order_items oi
+            JOIN group_orders go ON oi.group_order_id = go.group_order_id
+            WHERE go.group_order_id = %s
+            """,
+            (group_order_id,),
+        )
+        deleted_item_rows = cursor.rowcount
+
+        cursor.execute(
+            """
+            DELETE FROM group_orders
+            WHERE group_order_id = %s
+            """,
+            (group_order_id,),
+        )
+        deleted_group_rows = cursor.rowcount
+        if deleted_group_rows != 1:
+            raise ValueError("拼单主记录删除失败")
+
+        cursor.execute(
+            """
+            INSERT INTO operation_logs (op_type, detail)
+            VALUES (%s, %s)
+            """,
+            (
+                "CANCEL_GROUP_ORDER",
+                (
+                    f"group_order_id={group_order_id}, "
+                    f"deleted_items={deleted_item_rows}, "
+                    f"restored_drinks={restored_drink_rows}, "
+                    f"restored_coupons={restored_coupon_rows}"
+                ),
+            ),
+        )
+
+        connection.commit()
+        return {
+            "deleted_items": deleted_item_rows,
+            "restored_drinks": restored_drink_rows,
+            "restored_coupons": restored_coupon_rows,
+        }
+    except Exception:
+        if connection is not None:
+            connection.rollback()
+        raise
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if connection is not None and connection.is_connected():
+            connection.close()
+
+
 def create_app():
     app = Flask(__name__)
 
