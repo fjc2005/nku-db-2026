@@ -1,4 +1,4 @@
-# P0/P1 任务实现索引
+# P0/P1/P2 任务实现索引
 
 本文档用于作为后续 agent 的轻量上下文入口。正式开发时优先保留本索引，再按当前 stage 打开对应的需求片段和计划片段，避免一次性加载完整文档。
 
@@ -8,7 +8,7 @@
 2. 行号格式为 `文档路径:L起始-L结束`。
 3. 每个 stage 开始前先读取“公共上下文”和本 stage 对应条目。
 4. 每个 stage 必须遵循 `plan -> develop -> verify -> commit` 闭环。
-5. P0/P1 均按对应 stage 计划推进；P2 需求仅作后续扩展参考。
+5. P0/P1/P2 均按对应 stage 计划推进；每次只推进当前 stage。
 
 ## 公共上下文
 
@@ -22,6 +22,9 @@
 | P1 需求范围 | `docs/REQUIREMENT.md:L1422-L1622` |
 | P1 执行约定、范围摘要、Stage Gate 模板 | `docs/P1_BUILD.PLAN.md:L5-L64` |
 | P1 覆盖矩阵、后续执行方式 | `docs/P1_BUILD.PLAN.md:L399-L424` |
+| P2 需求范围 | `docs/REQUIREMENT.md:L1623-L1724` |
+| P2 执行约定、范围摘要、Stage Gate 模板 | `docs/P2_BUILD.PLAN.md:L5-L69` |
+| P2 覆盖矩阵、后续执行方式 | `docs/P2_BUILD.PLAN.md:L506-L532` |
 | 最终交付物、推荐目录结构、P0 完成判定 | `docs/REQUIREMENT.md:L1984-L2042` |
 | P0 覆盖矩阵、后续执行方式 | `docs/P0_BUILD.PLAN.md:L533-L559` |
 
@@ -63,6 +66,25 @@
 | Stage 09 | P1 演示说明与运行文档补充 | `docs/REQUIREMENT.md:L1450-L1470`, `docs/REQUIREMENT.md:L1520-L1562`, `docs/REQUIREMENT.md:L1594-L1619` | `docs/P1_BUILD.PLAN.md:L338-L365` | 补充 P1 演示路线、截图点和页面入口说明。 |
 | Stage 10 | P1 总体验收与回归修正 | `docs/REQUIREMENT.md:L1422-L1622` | `docs/P1_BUILD.PLAN.md:L367-L397` | 从干净数据库完整重放 P0 和 P1，修正验收发现的问题。 |
 
+## P2 Stage 对照目录
+
+| Stage | 任务 | 需求文档索引 | 实现计划索引 | 本 stage 取用重点 |
+| --- | --- | --- | --- | --- |
+| Stage 00 | P2 搭建计划基线 | `docs/REQUIREMENT.md:L1623-L1724` | `docs/P2_BUILD.PLAN.md:L73-L97` | 建立 P2 计划基线，不写代码。 |
+| Stage 01 | P0/P1 基线回归与 P2 验收清单 | `docs/REQUIREMENT.md:L1623-L1724` | `docs/P2_BUILD.PLAN.md:L99-L127` | 先确认 P0/P1 可运行，再建立 P2 验收清单。 |
+| Stage 02 | 登录账号数据模型与演示账号 | `docs/REQUIREMENT.md:L1627-L1648` | `docs/P2_BUILD.PLAN.md:L129-L157` | 在 `schema.sql` 中增加演示账号表、角色约束和密码哈希种子数据。 |
+| Stage 03 | 登录、退出与会话基础 | `docs/REQUIREMENT.md:L1629-L1637` | `docs/P2_BUILD.PLAN.md:L159-L189` | 页面路径 `/login`、`/logout`，实现 Flask session 登录流。 |
+| Stage 04 | 角色导航与页面访问控制 | `docs/REQUIREMENT.md:L1641-L1648` | `docs/P2_BUILD.PLAN.md:L191-L220` | 按学生/管理员角色展示入口并限制受保护页面。 |
+| Stage 05 | 学生参与拼单与个人订单范围 | `docs/REQUIREMENT.md:L1641-L1648` | `docs/P2_BUILD.PLAN.md:L222-L251` | 学生下单绑定当前账号，学生查询只看自己的订单。 |
+| Stage 06 | 创建拼单页面 | `docs/REQUIREMENT.md:L1654-L1663` | `docs/P2_BUILD.PLAN.md:L253-L283` | 页面路径 `/group/create`，选择店铺、标题、截止时间并创建 `OPEN` 拼单。 |
+| Stage 07 | 过期拼单自动关闭 | `docs/REQUIREMENT.md:L1667-L1675` | `docs/P2_BUILD.PLAN.md:L285-L314` | 超过 `deadline_at` 的 `OPEN` 拼单自动关闭，且不能继续加入。 |
+| Stage 08 | 拼单备注字段与展示 | `docs/REQUIREMENT.md:L1679-L1686` | `docs/P2_BUILD.PLAN.md:L316-L345` | `order_items` 增加备注字段，加入拼单可填写，详情查询可显示。 |
+| Stage 09 | 饮品销量排行 | `docs/REQUIREMENT.md:L1692-L1700` | `docs/P2_BUILD.PLAN.md:L347-L376` | 页面路径 `/stats/drinks`，按饮品统计销量并倒序展示。 |
+| Stage 10 | 学生消费排行 | `docs/REQUIREMENT.md:L1704-L1712` | `docs/P2_BUILD.PLAN.md:L378-L407` | 页面路径 `/stats/students`，按学生统计实付金额并倒序展示。 |
+| Stage 11 | 拼单详情 CSV 导出 | `docs/REQUIREMENT.md:L1716-L1723` | `docs/P2_BUILD.PLAN.md:L409-L439` | 页面路径 `/group/query/export`，导出与详情查询筛选一致的 CSV。 |
+| Stage 12 | P2 演示说明与运行文档补充 | `docs/REQUIREMENT.md:L1623-L1724` | `docs/P2_BUILD.PLAN.md:L441-L468` | 补充 P2 演示路线、截图点、页面入口和登录说明。 |
+| Stage 13 | P2 总体验收与回归修正 | `docs/REQUIREMENT.md:L1623-L1724` | `docs/P2_BUILD.PLAN.md:L470-L504` | 从干净数据库完整重放 P0、P1 和 P2，修正验收发现的问题。 |
+
 ## 需求速查
 
 | 需求类别 | 索引 |
@@ -81,6 +103,9 @@
 | P1 操作日志需求 | `docs/REQUIREMENT.md:L1520-L1562` |
 | P1 错误提示需求 | `docs/REQUIREMENT.md:L1566-L1590` |
 | P1 演示辅助需求 | `docs/REQUIREMENT.md:L1594-L1619` |
+| P2 登录权限需求 | `docs/REQUIREMENT.md:L1627-L1648` |
+| P2 拼单体验需求 | `docs/REQUIREMENT.md:L1652-L1686` |
+| P2 数据展示需求 | `docs/REQUIREMENT.md:L1690-L1723` |
 | 非功能需求 | `docs/REQUIREMENT.md:L1905-L1983` |
 
 ## Agent 执行提示
